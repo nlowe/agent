@@ -66,3 +66,7 @@ replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20200521142311-984
 replace github.com/ncabatoff/process-exporter => github.com/grafana/process-exporter v0.7.3-0.20200902205007-6343dc1182cf
 
 replace github.com/oliver006/redis_exporter => /Users/daf/workspace/redis_exporter
+
+// This forces vendoring to use the desired v.1.8.2, rather than the
+// incompatible pre-go-module v2.0.0
+replace github.com/gomodule/redigo => github.com/gomodule/redigo v1.8.2

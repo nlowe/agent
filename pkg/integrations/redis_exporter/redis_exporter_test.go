@@ -1,6 +1,7 @@
 package redis_exporter
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -13,8 +14,22 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRedisExporter(t *testing.T) {
-	cfg = DefaultConfig
+// TestRedisExporterDefaults runs a basic integration test for redis_exporter,
+// doing the following:
+//
+// 1. Creating an integration with default exporter config
+// 2. Scrape the integration
+// 3. Parse the result to ensure there's at least one metric
+//
+// This ensures that the default integration config results in an exporter
+// being created and the handler is set up properly. We do not check the
+// contents of the scrape, just that it was parsable by Prometheus.
+//
+// Note that the scrape results in an error from the exporter because it
+// cannot connect to a redis. This is irrelevant for the purposes of this
+// test.
+func TestRedisExporterDefaults(t *testing.T) {
+	cfg := DefaultConfig
 
 	logger := log.NewNopLogger()
 	integration, err := New(logger, cfg)
@@ -28,11 +43,13 @@ func TestRedisExporter(t *testing.T) {
 	srv := httptest.NewServer(r)
 	defer srv.Close()
 
-	res, err := http.Get(srv.URL + cfg.MetricPath)
+	res, err := http.Get(srv.URL + "/metrics")
 	require.NoError(t, err)
 
 	body, err := ioutil.ReadAll(res.Body)
 	require.NoError(t, err)
+
+	fmt.Printf("%s", body)
 
 	p := textparse.NewPromParser(body)
 	for {
@@ -44,4 +61,4 @@ func TestRedisExporter(t *testing.T) {
 	}
 }
 
-// TODO think if you've covered reasonable tests
+// Test some config has an effect on the exporter.

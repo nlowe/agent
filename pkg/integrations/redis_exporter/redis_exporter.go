@@ -18,7 +18,7 @@ import (
 
 type Integration struct {
 	c        Config
-	exporter re.Exporter
+	exporter *re.Exporter
 }
 
 // New creates a new redis_exporter integration.
@@ -31,7 +31,7 @@ func New(log log.Logger, c Config) (*Integration, error) {
 		re.BuildInfo{},
 	)
 	if err != nil {
-		return nil, fmt.Error("failed to create redis exporter: %w", err)
+		return nil, fmt.Errorf("failed to create redis exporter: %w", err)
 	}
 
 	return &Integration{
@@ -41,18 +41,21 @@ func New(log log.Logger, c Config) (*Integration, error) {
 }
 
 // CommonConfig satisfies Integration.CommonConfig.
-func (i *Integraiton) CommonConfig() config.Common { return i.c.CommonConfig }
+func (i *Integration) CommonConfig() config.Common { return i.c.CommonConfig }
 
 // Name satisfies Integration.Name.
 func (i *Integration) Name() string { return "redis_exporter" }
 
+// RegisterRoutes satisfies Integration.RegisterRoutes. The mux.Router provided
+// here is expected to be a subrouter, where all registered paths will be
+// registered within that subroute.
 func (i *Integration) RegisterRoutes(r *mux.Router) error {
 	handler, err := i.handler()
 	if err != nil {
 		return err
 	}
 
-	r.Handle(i.c.MetricPath, handler)
+	r.Handle("/metrics", handler)
 	return nil
 }
 
